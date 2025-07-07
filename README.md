@@ -1,169 +1,138 @@
-# OWL-ViT Archaeology Inference Pipeline
+# OWL-ViT Pipeline
 
-[![PyPI Version](https://img.shields.io/pypi/v/owlvit-archaeo-pipeline.svg)](https://pypi.org/project/owlvit-archaeo-pipeline)
-[![License](https://img.shields.io/github/license/your-org/owlvit-archaeo-pipeline)](LICENSE)
-
-A lightweight, installable toolkit for running and benchmarking zero-shot OWL-ViT inference on geospatial imagery. Supports data acquisition, tiling, prompt engineering, pre- and post-processing, and automated benchmarking.
+A reusable framework for zero-shot OWL-ViT inference on high-resolution satellite imagery, designed for modular experimentation and integration into geospatial detection tasks.
 
 ---
 
-## Step 1: Fetch Satellite Imagery
+## 🔧 Features
 
-Use the provided `fetch_satellite.py` script to download and stitch ESRI World Imagery tiles for your area of interest without QGIS.
+* Zero-shot detection with [OWL-ViT](https://huggingface.co/google/owlvit-base-patch32)
+* Modular experiment design (baseline, tiling, prompt engineering, etc.)
+* Visualisation and GeoJSON export of detections
+* Support for satellite imagery and archaeological feature prompts
+* Easily extensible for your own geospatial detection projects
+
+---
+
+## 🛆 Installation
+
+```bash
+git clone https://github.com/yourusername/owlvit-pipeline.git
+cd owlvit-pipeline
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+## 🌍 Step 1: Download Satellite Image
+
+Use the provided utility to fetch high-resolution satellite imagery.
 
 ```bash
 python fetch_satellite.py \
-  --min-lat <MIN_LAT> --min-lon <MIN_LON> \
-  --max-lat <MAX_LAT> --max-lon <MAX_LON> \
-  --zoom <ZOOM_LEVEL> \
-  --out <OUTPUT_FILENAME>.png
+  --min-lat 19.6890 --min-lon -98.8550 \
+  --max-lat 19.7050 --max-lon -98.8350 \
+  --zoom 17 \
+  --out data/images/<you_image_file.png>
 ```
 
-Example:
-
-```bash
-python fetch_satellite.py \
-  --min-lat 19.692 --min-lon -98.860 \
-  --max-lat 19.722 --max-lon -98.820 \
-  --zoom 18 \
-  --out teotihuacan.png
-```
-
-This will save the stitched image under `data/images/<OUTPUT_FILENAME>.png` by default.
-
+OR Upload your image to the 'data/images' folder
 ---
 
-## Table of Contents
+## 🚀 Step 2: Run Baseline Inference
 
-* [Features](#features)
-* [Installation](#installation)
-* [Project Structure](#project-structure)
-* [Quick Start](#quick-start)
-* [API Reference](#api-reference)
-* [Running Benchmarks](#running-benchmarks)
-* [Contributing](#contributing)
-* [License](#license)
+```python
+from tools.owlvit_utils import OwlViTPipeline
 
----
+# Initialize pipeline
+pipeline = OwlViTPipeline(
+    experiment_name="baseline",
+    resize_size=(1024, 1024)
+)
 
-## Features
+# Load data
+pipeline.load_image("images/teotihuacan_highres.png", image_name="teotihuacan")
+pipeline.load_prompts("prompts.txt")
 
-* **Data Acquisition**: Download and stitch high-resolution satellite imagery via ESRI World Imagery tiles
-* **Zero-shot OWL-ViT inference** on high-resolution geospatial imagery
-* **Flexible tiling strategies** for sliding-window detection
-* **Prompt engineering utilities** for open-vocabulary retrieval
-* **Pre- and post-processing helpers** (thresholding, non-max suppression)
-* **Automated benchmarking** across multiple configurations
+# Run inference
+results = pipeline.run_single_experiment(threshold=0.002)
 
----
-
-## Installation
-
-```bash
-git clone https://github.com/your-org/owlvit-archaeo-pipeline.git
-cd owlvit-archaeo-pipeline
-pip install -e .
-```
-
-Ensure you have Python 3.8+ and a GPU-enabled PyTorch installation.
-
----
-
-## Project Structure
-
-```
-owlvit-archaeo-pipeline/
-├─ fetch_satellite.py       # Step 1: download & stitch imagery
-├─ tools/
-│   ├─ owlvit_utils.py      # OwlViTPipeline class for inference & outputs
-│   └─ tiling_utils.py      # TilingUtils for sliding-window inference
-│
-├─ experiments/             # Example notebooks for each method
-│   ├─ baseline/
-│   │   └─ notebook.ipynb
-│   └─ prompt_engineering/
-│       └─ notebook.ipynb
-│
-├─ run_benchmark.py         # Execute notebooks & aggregate results
-├─ setup.py                 # Package definition for pip
-├─ requirements.txt         # Dependencies
-└─ README.md                # This guide
+# Save outputs
+pipeline.save_visualisation(results, threshold=0.002)
+pipeline.save_metrics(results, threshold=0.002)
+pipeline.save_geojson(results, threshold=0.002)
 ```
 
 ---
 
-## Quick Start
+## 📓 Experiments
 
-1. **Fetch imagery** (see [Step 1](#step-1-fetch-satellite-imagery)).
-2. **Install the package**
-
-   ```bash
-   pip install -e .
-   ```
-3. **Prepare prompts & run inference**
-
-   ```python
-   from tools.owlvit_utils import OwlViTPipeline
-
-   pipeline = OwlViTPipeline(experiment_name='baseline')
-   pipeline.load_image('data/images/teotihuacan.png', image_name='teotihuacan')
-   pipeline.load_prompts('data/prompts.txt')
-
-   thresholds = [0.002, 0.005, 0.01]
-   results = pipeline.run_threshold_experiments(thresholds)
-
-   pipeline.save_visualisation(results[0], thresholds[0], out_path='outputs/vis_teotihuacan_0.002.png')
-   pipeline.save_metrics(results[0], thresholds[0], out_path='outputs/metrics_teotihuacan_0.002.json')
-   pipeline.run_and_save_geojson(thresholds[0], out_path='outputs/teotihuacan_0.002.geojson')
-   ```
+Each folder under `experiments/` contains a Jupyter notebook implementing a distinct method to improve OWL-ViT zero-shot object detection on high-resolution satellite imagery. These experiments are designed to benchmark performance across various threshold values and inference strategies:
 
 ---
 
-## API Reference
+### **Baseline**  
+`experiments/baseline/notebooks/notebook.ipynb`  
+Performs a single-shot full-image inference using OWL-ViT with the chosen prompt set. The raw outputs from the model are saved and visualized across different thresholds. Detection metrics such as total detections, average confidence scores, and per-class counts are logged. This serves as the control experiment to compare all other enhancements.
 
-### `OwlViTPipeline`
+### **Tiling**  
+`experiments/tiling/notebooks/notebook.ipynb`  
+Divides the high-resolution satellite image into overlapping tiles (e.g., 768×768 with 0.5 overlap). OWL-ViT is run separately on each tile, and results are merged into a single detection set using coordinate translation and deduplication. This helps capture small-scale archaeological features that are often lost in large-scale inference due to resolution constraints. Metrics and visualizations are again saved across threshold levels.
 
-* **Constructor**: `OwlViTPipeline(experiment_name: str)`
+### **Prompt Engineering**  
+`experiments/prompt_engineering/notebooks/notebook.ipynb`  
+Tests the effect of prompt phrasing on detection results. For example:
+- "an archaeological site in a satellite image"
+- "an ancient temple ruin"
+- "a stepped tank from above"
+The notebook runs inference separately with each prompt or combination of prompts, compares their effectiveness, and analyzes prompt sensitivity. This experiment helps evaluate how open-vocabulary models like OWL-ViT respond to prompt granularity and semantic variation.
 
-  * `experiment_name`: Identifier for outputs and logs
+### **Pre-processing**  
+`experiments/preprocessing/notebooks/notebook.ipynb`  
+Applies basic image enhancement techniques to improve visibility before inference:
+- **Contrast Stretching**: Linearly scales pixel values to enhance faded or low-contrast features.
+- **Histogram Equalization**: Redistributes pixel intensities to accentuate edges and local structures.
+These pre-processed images are then passed into the standard full-image OWL-ViT pipeline. Visualizations and detection counts are compared with those from the unprocessed baseline.
 
-* **Methods**:
+### **Post-processing**  
+`experiments/postprocessing/notebooks/notebook.ipynb`  
+Refines the raw model outputs using the following filtering steps:
+1. **Prompt Filtering**: Keeps only detections corresponding to a specific prompt (e.g., archaeological site).
+2. **Non-Maximum Suppression (NMS)**: Removes overlapping boxes based on IoU (default: 0.3) to eliminate duplicates.
+3. **Area Filtering**: Retains only boxes within a size range (e.g., 0.005%–5% of the full image area).
+4. **Top-K Selection**: Selects the top K highest-confidence detections (default: K=12).
 
-  * `load_image(path: str, image_name: str)` – Load a geospatial image for inference.
-  * `load_prompts(file_path: str)` – Load newline-delimited prompts.
-  * `run_threshold_experiments(thresholds: List[float]) -> List[Dict]` – Perform inference at each threshold.
-  * `save_visualisation(result: Dict, threshold: float, out_path: str) -> None` – Save annotated image.
-  * `save_metrics(result: Dict, threshold: float, out_path: str) -> None` – Save JSON metrics.
-  * `run_and_save_geojson(threshold: float, out_path: str) -> None` – Export detections to GeoJSON.
-
----
-
-## Running Benchmarks
-
-The `run_benchmark.py` script executes all notebooks under `experiments/` using Papermill, collects JSON metrics, and writes `benchmark_results.csv`:
-
-```bash
-python run_benchmark.py --data-dir data/images --prompts prompts.txt --output-dir outputs/
-```
-
-Generates:
-
-* `outputs/benchmark_results.csv`
-* Visualisations & GeoJSON for each experiment
-
----
-
-## Contributing
-
-1. Fork the repo
-2. Create a branch (`git checkout -b feature/my-feature`)
-3. Commit changes (`git commit -m 'Add feature'`)
-4. Push and open a Pull Request
-
-Ensure tests cover new code and follow PEP 8.
+Each step reduces noise and focuses on more reliable detections. The final post-filtered boxes are visualized and analyzed.
 
 ---
 
-## License
+## 🧪 Customisation
 
-Licensed under the [MIT License](LICENSE).
+This pipeline is modular. You can:
+
+* Add new experiment types by copying a template notebook
+* Extend or replace utility scripts under `/tools`
+* Swap in new imagery or prompt sets
+
+---
+
+## ✅ Requirements
+
+See `requirements.txt`. Key packages include:
+
+* `transformers`
+* `torch`
+* `Pillow`
+* `matplotlib`
+* `geopandas`
+* `shapely`
+* `rasterio` 
+* `scikit-learn`
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
