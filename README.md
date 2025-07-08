@@ -72,7 +72,7 @@ Tests the effect of prompt phrasing on detection results. For example:
 - "an ancient temple ruin"
 - "a stepped tank from above"
 
-The notebook runs inference separately with each prompt or combination of prompts, compares their effectiveness, and analyzes prompt sensitivity. This experiment helps evaluate how open-vocabulary models like OWL-ViT respond to prompt granularity and semantic variation.
+The notebook runs inference separately with each prompt or combination of prompts, compares their effectiveness, and analyzes prompt sensitivity. This experiment helps evaluate how open-vocabulary models like OWL-ViT respond to prompt granularity and semantic variation. A set of sample templates are provided in the notebook.
 
 ### **Pre-processing**  
 `experiments/preprocessing/notebooks/notebook.ipynb`  
