@@ -1,4 +1,4 @@
-# OWL-ViT Pipeline
+# OWL-ViT Geospatial Archaeological Detection Pipeline
 
 A reusable framework for zero-shot [OWL-ViT](https://huggingface.co/google/owlvit-base-patch32) inference on high-resolution satellite imagery. The repository focuses on archaeology use‑cases but is designed for modular experimentation and integration into any geospatial detection tasks
 
