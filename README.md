@@ -79,6 +79,7 @@ The notebook runs inference separately with each prompt or combination of prompt
 Applies basic image enhancement techniques to improve visibility before inference:
 - **Contrast Stretching**: Linearly scales pixel values to enhance faded or low-contrast features.
 - **Histogram Equalization**: Redistributes pixel intensities to accentuate edges and local structures.
+  
 These pre-processed images are then passed into the standard full-image OWL-ViT pipeline. Visualizations and detection counts are compared with those from the unprocessed baseline.
 
 ### **Post-processing**  
