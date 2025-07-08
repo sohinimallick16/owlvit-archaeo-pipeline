@@ -71,6 +71,7 @@ Tests the effect of prompt phrasing on detection results. For example:
 - "an archaeological site in a satellite image"
 - "an ancient temple ruin"
 - "a stepped tank from above"
+
 The notebook runs inference separately with each prompt or combination of prompts, compares their effectiveness, and analyzes prompt sensitivity. This experiment helps evaluate how open-vocabulary models like OWL-ViT respond to prompt granularity and semantic variation.
 
 ### **Pre-processing**  
