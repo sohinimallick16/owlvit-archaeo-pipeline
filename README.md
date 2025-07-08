@@ -1,24 +1,24 @@
 # OWL-ViT Pipeline
 
-A reusable framework for zero-shot OWL-ViT inference on high-resolution satellite imagery, designed for modular experimentation and integration into geospatial detection tasks.
+A reusable framework for zero-shot [OWL-ViT](https://huggingface.co/google/owlvit-base-patch32) inference on high-resolution satellite imagery. The repository focuses on archaeology use‑cases but is designed for modular experimentation and integration into any geospatial detection tasks
 
 ---
 
 ## 🔧 Features
 
-* Zero-shot detection with [OWL-ViT](https://huggingface.co/google/owlvit-base-patch32)
-* Modular experiment design (baseline, tiling, prompt engineering, etc.)
-* Visualisation and GeoJSON export of detections
-* Support for satellite imagery and archaeological feature prompts
-* Easily extensible for your own geospatial detection projects
+* **Zero-shot detection** using the pre-trained OWL‑ViT model
+* **Modular experiment design** – baseline inference, tiling, prompt engineering, preprocessing and post‑processing all live in separate notebooks
+* **Visualisation utilities** that draw bounding boxes and export results as GeoJSON
+* **Prompt-based workflow** tailored to archaeological feature detection but easy to adapt
+* **Extensible codebase** – reuse the pipeline classes in your own projects
 
 ---
 
 ## 🛆 Installation
 
 ```bash
-git clone https://github.com/yourusername/owlvit-pipeline.git
-cd owlvit-pipeline
+git clone https://github.com/sohinimallick16/owlvit-pipeline.git
+cd owlvit-archaeo-pipeline
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -26,7 +26,17 @@ pip install -r requirements.txt
 
 ---
 
-## 🌍 Step 1: Download Satellite Image
+## ⚡ Quickstart
+
+1. Install the dependencies as shown above.
+2. Download or copy your satellite image into `data/images/`.
+3. Create a `prompts.txt` file with one textual prompt per line.
+4. Run the baseline script or one of the experiment notebooks.
+5. Inspect the visualisations and GeoJSON outputs under `experiments/<name>/outputs`.
+
+---
+
+## Download Satellite Image
 
 Use the provided utility to fetch high-resolution satellite imagery.
 
@@ -35,35 +45,10 @@ python fetch_satellite.py \
   --min-lat 19.6890 --min-lon -98.8550 \
   --max-lat 19.7050 --max-lon -98.8350 \
   --zoom 17 \
-  --out data/images/<you_image_file.png>
+  --out data/images/<your_image_file.png>
 ```
 
 OR Upload your image to the 'data/images' folder
----
-
-## 🚀 Step 2: Run Baseline Inference
-
-```python
-from tools.owlvit_utils import OwlViTPipeline
-
-# Initialize pipeline
-pipeline = OwlViTPipeline(
-    experiment_name="baseline",
-    resize_size=(1024, 1024)
-)
-
-# Load data
-pipeline.load_image("images/teotihuacan_highres.png", image_name="teotihuacan")
-pipeline.load_prompts("prompts.txt")
-
-# Run inference
-results = pipeline.run_single_experiment(threshold=0.002)
-
-# Save outputs
-pipeline.save_visualisation(results, threshold=0.002)
-pipeline.save_metrics(results, threshold=0.002)
-pipeline.save_geojson(results, threshold=0.002)
-```
 
 ---
 
@@ -71,7 +56,6 @@ pipeline.save_geojson(results, threshold=0.002)
 
 Each folder under `experiments/` contains a Jupyter notebook implementing a distinct method to improve OWL-ViT zero-shot object detection on high-resolution satellite imagery. These experiments are designed to benchmark performance across various threshold values and inference strategies:
 
----
 
 ### **Baseline**  
 `experiments/baseline/notebooks/notebook.ipynb`  
@@ -103,8 +87,6 @@ Refines the raw model outputs using the following filtering steps:
 2. **Non-Maximum Suppression (NMS)**: Removes overlapping boxes based on IoU (default: 0.3) to eliminate duplicates.
 3. **Area Filtering**: Retains only boxes within a size range (e.g., 0.005%–5% of the full image area).
 4. **Top-K Selection**: Selects the top K highest-confidence detections (default: K=12).
-
-Each step reduces noise and focuses on more reliable detections. The final post-filtered boxes are visualized and analyzed.
 
 ---
 

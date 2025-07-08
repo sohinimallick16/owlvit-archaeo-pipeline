@@ -62,14 +62,21 @@ class OwlViTPipeline:
         self.experiment = experiment_name
         self.experiment_dir = os.path.join(self.ROOT, "experiments", experiment_name)
 
-        # --- outputs under that ---
+        # --- outputs ---
         self.data_dir            = os.path.join(self.ROOT, "data")
         self.output_dir          = os.path.join(self.experiment_dir, "outputs")
         self.visualisations_dir  = os.path.join(self.output_dir, "visualisations")
         self.geojson_dir         = os.path.join(self.output_dir, "geojson")
         self.metrics_dir         = os.path.join(self.output_dir, "metrics")
        
-        for d in (self.visualisations_dir, self.geojson_dir):
+        # ensure that all output directories exist
+        for d in (
+            self.experiment_dir,
+            self.output_dir,
+            self.visualisations_dir,
+            self.geojson_dir,
+            self.metrics_dir,
+        ):
             os.makedirs(d, exist_ok=True)
 
         # Model
@@ -234,6 +241,7 @@ class OwlViTPipeline:
         name = f"detections_{self.experiment}_{self.image_name}_{threshold:.4f}.png"
 
         path = os.path.join(self.visualisations_dir, name)
+        os.makedirs(self.visualisations_dir, exist_ok=True)
         fig.savefig(path)
         plt.close(fig)
         return path
@@ -268,6 +276,7 @@ class OwlViTPipeline:
         name += f"_{threshold:.4f}.json"
 
         path = os.path.join(self.metrics_dir, name)
+        os.makedirs(self.metrics_dir, exist_ok=True)
         with open(path, 'w') as f:
             json.dump(metric, f, indent=2)
         return path
@@ -336,6 +345,7 @@ class OwlViTPipeline:
         gdf = gpd.GeoDataFrame(features, crs="EPSG:4326")
         fname = f'detections_{self.experiment}_{self.image_name}_{threshold:.4f}.geojson'
         path = os.path.join(self.geojson_dir, fname)
+        os.makedirs(self.geojson_dir, exist_ok=True)
         gdf.to_file(path, driver='GeoJSON')
         return path
 
